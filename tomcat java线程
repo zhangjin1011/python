@@ -1,0 +1,36 @@
+## <center>tomcat线程测试</center>
+
+### 测试一：
+    测试环境：
+	系统版本：CentOS release 6.7 (Final)
+	系统配置：2core 4G（B配置）
+	架构位：X86_64
+	jdk版本：jdk1.8.0_74
+	tomcat版本：apache-tomcat-8.5.3
+
+###### 1. tomcat启动之后，大约28个线程：
+![](http://i.imgur.com/yzC6VPn.png)
+
+###### 2. 通过以下代码，生成新的线程，通过tomcat不断创建新的线程，直至oom
+	while(true){
+	    new Thread(new Runnable(){
+	        public void run() {
+	            try {
+	                Thread.sleep(10000000);
+	            } catch(InterruptedException e) { }        
+	        }    
+	    }).start();
+	}
+![](http://i.imgur.com/6sz2OcX.png)
+
+###### 3.通过上图日志显示，生成997个线程后结束，此时查看tomcat日志，发生oom
+ ![](http://i.imgur.com/dEvTs5r.png)
+
+###### 4.查看系统java线程数为1025（28+997=1025）
+![](http://i.imgur.com/6XWRCHA.png)
+
+### 结论：
+	1. 当前配置下，我们java环境最终只允许运行1025个线程，超过就会oom	
+	2. 正常情况下，线程会保持在100以下
+	3. 流量较大时，线程会保持在200-300之间
+	4. 线程超过500，需要查询代码中是否有大量wait等
